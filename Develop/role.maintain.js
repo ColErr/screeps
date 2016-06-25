@@ -15,6 +15,7 @@ var roleMaintainer = {
             creep.memory.state = 3;
         }
         
+        var result;
         switch(creep.memory.state){
             case 0:
                 if(container[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
@@ -22,8 +23,12 @@ var roleMaintainer = {
                 }
                 break;
             case 1:
-                if(creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                result = creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY);
+                if(result == ERR_NOT_IN_RANGE) {
                     creep.moveTo(Game.spawns.Spawn1);
+                }
+                else if(result == ERR_FULL){
+                    creep.memory.state = 0;
                 }
                 break;
             case 2:
@@ -34,9 +39,10 @@ var roleMaintainer = {
                         if(creep.transfer(ext[index], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(ext[index]);
                         }
-                        break;
+                        return;
                     }
                 }
+                creep.memory.state = 0;
                 break;
             case 3:
                 if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
