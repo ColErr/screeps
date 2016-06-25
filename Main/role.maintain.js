@@ -2,18 +2,36 @@ var roleMaintainer = {
     
     /** @param {Creep} creep **/
     run: function(creep, container) {
-        var upgrading = creep.upgradeController(creep.room.controller);
-        if(upgrading == ERR_NOT_IN_RANGE || upgrading == ERR_NOT_ENOUGH_RESOURCES){
+        if(creep.carry.energy == 0){
+            creep.memory.state = 0;
+        }
+        else if(Game.spawns.Spawn1.energy < Game.spawns.Spawn1.energyCapacity&& creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+            creep.memory.state = 1;
+        }
+        else if(Game.spawns.Spawn1.room.energyAvailable < Game.spawns.Spawn1.room.energyCapacityAvailable && creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+            creep.memory.state = 2;
+        }
+        else if(creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+            creep.memory.state = 3;
+        }
         
-            if(creep.carry.energy < creep.carryCapacity) {
+        var result;
+        switch(creep.memory.state){
+            case 0:
                 if(container[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
                     creep.moveTo(container[0])
                 }
-            } else if(Game.spawns.Spawn1.energy < Game.spawns.Spawn1.energyCapacity) {
-                if(creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                break;
+            case 1:
+                result = creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY);
+                if(result == ERR_NOT_IN_RANGE) {
                     creep.moveTo(Game.spawns.Spawn1);
                 }
-            } else if(Game.spawns.Spawn1.room.energyAvailable < Game.spawns.Spawn1.room.energyCapacityAvailable){
+                else if(result == ERR_FULL){
+                    creep.memory.state = 0;
+                }
+                break;
+            case 2:
                 var ext = Game.spawns.Spawn1.room.find(FIND_MY_STRUCTURES, {filter: {structureType: STRUCTURE_EXTENSION}})
                 for(var index in ext){
                     
@@ -21,13 +39,16 @@ var roleMaintainer = {
                         if(creep.transfer(ext[index], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(ext[index]);
                         }
-                        break;
+                        return;
                     }
                 }
-            }
-            else {
-                creep.moveTo(creep.room.controller);
-            }
+                creep.memory.state = 0;
+                break;
+            case 3:
+                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
+                break;
         }
     },
     
@@ -40,5 +61,14 @@ var roleMaintainer = {
         }
     }
 }
+
+/*
+Maintainence Creep States
+
+0 = Get Energy
+1 = Bring Energy to Spawn
+2 = Bring Energy to Extentions
+3 = Upgrade Controller
+*/
 
 module.exports = roleMaintainer;

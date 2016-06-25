@@ -2,37 +2,53 @@ var roleHarvester = {
     
     /** @param {Creep} creep **/
     run: function(creep, container) {
-        if(container == 0) {
-            var upgrading = creep.upgradeController(creep.room.controller);
-            if(upgrading == ERR_NOT_IN_RANGE || upgrading == ERR_NOT_ENOUGH_RESOURCES){
-            
-                if(creep.carry.energy < creep.carryCapacity) {
-                    var sources = creep.room.find(FIND_SOURCES);
-                    
-                    if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources[0]);
-                    }
-                } else if(Game.spawns.Spawn1.energy < Game.spawns.Spawn1.energyCapacity) {
-                    if(creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(Game.spawns.Spawn1);
-                    }
+        if(creep.carry.energy == 0){
+            creep.memory.state = 0;
+        }
+        else if(creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+            if(container != 0){
+                creep.memory.state = 1;
+            }
+            else{
+                if(Game.spawns.Spawn1.energy < Game.spawns.Spawn1.energyCapacity){
+                    creep.memory.state = 2;
                 }
-                else {
-                    creep.moveTo(creep.room.controller);
+                else{
+                    creep.memory.state = 3;
                 }
             }
-        } else {
-            if(creep.carry.energy < creep.carryCapacity) {
+        }
+        
+        var result;
+        
+        switch(creep.memory.state){
+            case 0:
                 var sources = creep.room.find(FIND_SOURCES);
-                
                 if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(sources[0]);
                 }
-            } else if(_.sum(container[0].store) < container[0].storeCapacity) {
-                if(creep.transfer(container[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(container[0]);
+                break;
+            case 1:
+                if(container[0].store.energy < container[0].storeCapacity) {
+                    if(creep.transfer(container[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(container[0]);
+                    }
                 }
-            }
+                break;
+            case 2:
+                result = creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY);
+                if(result == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(Game.spawns.Spawn1);
+                }
+                else if(result == ERR_FULL){
+                    creep.memory.state = 0;
+                }
+                break;
+            case 3:
+                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
+                break;
         }
     },
     
@@ -45,5 +61,13 @@ var roleHarvester = {
         }
     }
 }
+/*
+Harvester Creep States
+
+0 = Harvest Energy
+1 = Move Energy to Empty Container
+2 = Move Energy to Spawn
+3 = Upgrade Controller
+*/
 
 module.exports = roleHarvester;

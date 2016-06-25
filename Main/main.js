@@ -12,7 +12,13 @@ module.exports.loop = function () {
     
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if(creep.memory.role == "Harvest"){
+        
+        //Garbage collect. Kill them at 1TTL to make life easier
+        if(creep.ticksToLive == 1){
+            creep.suicide;
+            delete Memory.creeps[name];
+        }
+        else if(creep.memory.role == "Harvest"){
             roleHarvester.run(creep, container);
             workers++;
         }
@@ -38,11 +44,11 @@ module.exports.loop = function () {
         Game.spawns.Spawn1.createCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE], "CloseAtt"+Game.time, {role:"Fighter"})
     }
     */
-    else if(builders < 3 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
-        roleBuilder.buildBuilder();
-    }
     else if(maintain < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
         roleMaintainer.buildMaintainer();
+    }
+    else if(builders < 3 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
+        roleBuilder.buildBuilder();
     }
     else if(workers < 4 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
         roleHarvester.buildHarvester();

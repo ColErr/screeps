@@ -2,38 +2,48 @@ var roleBuilder = {
     
     /** @param {Creep} creep **/
     run: function(creep, container) {
-        var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
-        if(container != 0 && (container[0].hits < container[0].hitsMax)){
-            repairStruct(creep, container, container[0]);
+        var targets;
+        if(creep.carry.energy == 0){
+            creep.memory.state = 0;
         }
-        else if(targets.length){
-            var building = creep.build(targets[0]);
-            
-            if(building == ERR_NOT_ENOUGH_RESOURCES || building == ERR_NOT_IN_RANGE){
-                if(creep.carry.energy < creep.carryCapacity){
-                    getEnergy(creep, container);
+        else if(creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+            targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+            if(targets.length){
+                creep.memory.state = 1;
+            }
+            else{
+                targets = creep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax});
+                if(targets.length){
+                    creep.memory.state = 2;
                 }
-                else {
+                else{
+                    creep.memory.state = 3;
+                }
+            }
+        }
+        
+        switch(creep.memory.state){
+            case 0:
+                getEnergy(creep, container);
+                break;
+            case 1:
+                targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+                if(creep.build(targets[0]) == ERR_NOT_IN_RANGE){
                     creep.moveTo(targets[0]);
                 }
-            }
-        } else {
-            targets = creep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax});
-            if(!targets.length){
-                var upgrading = creep.upgradeController(creep.room.controller);
-                console.log(upgrading);
-                if(upgrading == ERR_NOT_IN_RANGE || upgrading == ERR_NOT_ENOUGH_RESOURCES){
-                    if(creep.carry.energy < creep.carryCapacity) {
-                        getEnergy();
-                    }
-                    else {
-                        creep.moveTo(creep.room.controller);
-                    }
+                break;
+            case 2:
+                targets = creep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax});
+                targets.sort((a,b) => a.hits - b.hits);
+                if(creep.repair(targets[0]) == ERR_NOT_IN_RANGE){
+                    creep.moveTo(targets[0]);
                 }
-                return;
-            }
-            targets.sort((a,b) => a.hits - b.hits);
-            repairStruct(creep, container, targets[0]);
+                break;
+            case 3:
+                if(creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
+                break;
         }
     },
     
@@ -49,6 +59,15 @@ var roleBuilder = {
 
 module.exports = roleBuilder;
 
+/*
+Builder Creep States
+
+0 = Get More Energy
+1 = Build Structure
+2 = Repair Structure
+3 = Upgrade room
+*/
+
 function getEnergy(creep, container){
     if(container == 0){
         var sources = creep.room.find(FIND_SOURCES);
@@ -60,17 +79,6 @@ function getEnergy(creep, container){
     else {
         if(container[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
             creep.moveTo(container[0])
-        }
-    }
-}
-function repairStruct(creep, container, target){
-    var repairIt = creep.repair(target);
-    if(repairIt == ERR_NOT_ENOUGH_RESOURCES || repairIt == ERR_NOT_IN_RANGE){
-        if(creep.carry.energy < creep.carryCapacity){
-            getEnergy(creep, container);
-        }
-        else {
-            creep.moveTo(target);
         }
     }
 }
