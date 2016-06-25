@@ -12,7 +12,13 @@ module.exports.loop = function () {
     
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if(creep.memory.role == "Harvest"){
+        
+        //Garbage collect. Kill them at 1TTL to make life easier
+        if(creep.ticksToLive == 1){
+            creep.suicide;
+            delete Memory.creeps[name];
+        }
+        else if(creep.memory.role == "Harvest"){
             roleHarvester.run(creep, container);
             workers++;
         }
