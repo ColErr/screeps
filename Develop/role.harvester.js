@@ -19,6 +19,8 @@ var roleHarvester = {
             }
         }
         
+        var result;
+        
         switch(creep.memory.state){
             case 0:
                 var sources = creep.room.find(FIND_SOURCES);
@@ -34,8 +36,12 @@ var roleHarvester = {
                 }
                 break;
             case 2:
-                if(creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                result = creep.transfer(Game.spawns.Spawn1, RESOURCE_ENERGY);
+                if(result == ERR_NOT_IN_RANGE) {
                     creep.moveTo(Game.spawns.Spawn1);
+                }
+                else if(result == ERR_FULL){
+                    creep.memory.state = 0;
                 }
                 break;
             case 3:
