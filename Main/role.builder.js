@@ -39,7 +39,7 @@ var roleBuilder = {
     
     buildBuilder: function(){
         if(Game.spawns.Spawn1.room.energyCapacityAvailable > 400){
-            Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], "Build"+Game.time, {role:"Build"});
+            Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, MOVE, MOVE, MOVE], "Build"+Game.time, {role:"Build"});
         }
         else {
             Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, MOVE], "Build"+Game.time, {role:"Build"});
