@@ -29,9 +29,12 @@ var roleHarvester = {
                 }
                 break;
             case 1:
-                if(container[0].store.energy < container[0].storeCapacity) {
-                    if(creep.transfer(container[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(container[0]);
+                for(var index in container){
+                    if(container[index].store.energy < container[index].storeCapacity) {
+                        if(creep.transfer(container[index], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(container[index]);
+                            break;
+                        }
                     }
                 }
                 break;

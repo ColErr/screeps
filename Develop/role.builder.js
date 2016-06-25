@@ -77,8 +77,13 @@ function getEnergy(creep, container){
         }
     }
     else {
-        if(container[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
-            creep.moveTo(container[0])
+        for(var index in container){
+            if(container[index].store.energy > creep.carryCapacity){
+                if(container[index].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
+                    creep.moveTo(container[index]);
+                    break;
+                }
+            }
         }
     }
 }
