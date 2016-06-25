@@ -9,6 +9,7 @@ module.exports.loop = function () {
     var builders = 0;
     var maintain = 0;
     var fighters = 0;
+    var repairer = 0;
     
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
@@ -34,6 +35,10 @@ module.exports.loop = function () {
             roleFighter.run(creep);
             fighters++;
         }
+        else if(creep.memory.role == "Repair"){
+            roleRepair.run(creep, container);
+            repairer++
+        }
     }
     
     if(workers < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
@@ -52,5 +57,8 @@ module.exports.loop = function () {
     }
     else if(workers < 4 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
         roleHarvester.buildHarvester();
+    }
+    else if(repairer < 1 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
+        roleRepair.buildRepair();
     }
 }

@@ -6,7 +6,7 @@ var roleBuilder = {
         if(creep.carry.energy == 0){
             creep.memory.state = 0;
         }
-        else if(creep.carry.energy == creep.carryCapacity && creep.memory.state == 0){
+        else if(creep.carry.energy == creep.carryCapacity && (creep.memory.state == 0 || creep.memory.state == 2)){
             targets = creep.room.find(FIND_CONSTRUCTION_SITES);
             if(targets.length){
                 creep.memory.state = 1;
@@ -28,12 +28,18 @@ var roleBuilder = {
                 break;
             case 1:
                 targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+                if(!targets.length){
+                    creep.memory.state = 0;
+                }
                 if(creep.build(targets[0]) == ERR_NOT_IN_RANGE){
                     creep.moveTo(targets[0]);
                 }
                 break;
             case 2:
                 targets = creep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax});
+                if(!targets.length){
+                    creep.memory.state = 0;
+                }
                 targets.sort((a,b) => a.hits - b.hits);
                 if(creep.repair(targets[0]) == ERR_NOT_IN_RANGE){
                     creep.moveTo(targets[0]);
@@ -77,8 +83,13 @@ function getEnergy(creep, container){
         }
     }
     else {
-        if(container[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
-            creep.moveTo(container[0])
+        for(var index in container){
+            if(container[index].store.energy > creep.carryCapacity){
+                if(container[index].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
+                    creep.moveTo(container[index]);
+                    break;
+                }
+            }
         }
     }
 }
