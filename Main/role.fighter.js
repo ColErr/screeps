@@ -22,9 +22,18 @@ var roleFighter = {
                 creep.moveTo(staging[0]);
                 break;
             case: 2;
-                if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
-                    creep.moveTo(targets[0]);
+                var success = creep.rangedAttack(targets[0]);
+                if(success == ERR_NO_BODYPART){
+                    if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
+                        creep.moveTo(targets[0]);
+                    }
+                    return;
                 }
+                else if(success == ERR_NOT_IN_RANGE){
+                    creep.moveTo(targets[0]);
+                    return;
+                }
+                creep.attack(targets[0]);
                 break;
         }
     },
