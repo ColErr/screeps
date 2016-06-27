@@ -5,6 +5,10 @@ var roleFighter = {
         if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
             creep.moveTo(targets[0]);
         }
+    },
+    
+    buildFighter(){
+        Game.spawns.Spawn1.createCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE], "CloseAtt"+Game.time, {role:"Fighter"})
     }
 }
 

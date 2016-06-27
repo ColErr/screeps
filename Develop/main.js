@@ -46,7 +46,7 @@ module.exports.loop = function () {
     }
     /* Commetted out for now, since I don't need them. They just die.
     else if(fighters < 1 && !Game.spawns.Spawn1.canCreateCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE])){
-        Game.spawns.Spawn1.createCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE], "CloseAtt"+Game.time, {role:"Fighter"})
+        roleFighter.buildFighter();
     }
     */
     else if(maintain < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){

@@ -32,7 +32,6 @@ var roleRepair = {
                     if(container[index].hits < container[index].hitsMax){
                         if(creep.repair(container[index]) == ERR_NOT_IN_RANGE){
                             creep.moveTo(container[index]);
-                            return;
                         }
                         return;
                     }
@@ -42,7 +41,6 @@ var roleRepair = {
                     if(targets[index].hits < targets[index].hitsMax){
                         if(creep.repair(targets[index]) == ERR_NOT_IN_RANGE){
                             creep.moveTo(targets[index]);
-                            return;
                         }
                         return;
                     }

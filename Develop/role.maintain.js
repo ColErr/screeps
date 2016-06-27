@@ -58,7 +58,10 @@ var roleMaintainer = {
     },
     
     buildMaintainer: function(){
-        if(Game.spawns.Spawn1.room.energyCapacityAvailable > 400){
+        if(Game.spawns.Spawn1.room.energyCapacityAvailable >= 550){
+            Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE], "Maintain"+Game.time, {role:"Maintain"});
+        }
+        else if(Game.spawns.Spawn1.room.energyCapacityAvailable >= 400){
             Game.spawns.Spawn1.createCreep([WORK, WORK, WORK, CARRY, MOVE], "Maintain"+Game.time, {role:"Maintain"});
         }
         else {

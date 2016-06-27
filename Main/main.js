@@ -2,6 +2,7 @@ var roleHarvester = require('role.harvester');
 var roleBuilder = require('role.builder');
 var roleMaintainer = require('role.maintain');
 var roleFighter = require('role.fighter');
+var roleRepair = require('role.repair');
 
 module.exports.loop = function () {
     var container = Game.spawns.Spawn1.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}});
@@ -27,6 +28,10 @@ module.exports.loop = function () {
             roleMaintainer.run(creep, container);
             maintain++;
         }
+        else if(creep.memory.role == "Repair"){
+            roleRepair.run(creep, container);
+            repairer++
+        }
         else if(creep.memory.role == "Build"){
             roleBuilder.run(creep, container);
             builders++;
@@ -35,30 +40,27 @@ module.exports.loop = function () {
             roleFighter.run(creep);
             fighters++;
         }
-        else if(creep.memory.role == "Repair"){
-            roleRepair.run(creep, container);
-            repairer++
-        }
     }
     
     if(workers < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
         roleHarvester.buildHarvester();
     }
-    /* Commetted out for now, since I don't need them. They just die.
-    else if(fighters < 1 && !Game.spawns.Spawn1.canCreateCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE])){
-        Game.spawns.Spawn1.createCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE], "CloseAtt"+Game.time, {role:"Fighter"})
-    }
-    */
     else if(maintain < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
         roleMaintainer.buildMaintainer();
     }
     else if(builders < 3 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
         roleBuilder.buildBuilder();
     }
-    else if(workers < 4 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
+    else if(workers < 6 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
         roleHarvester.buildHarvester();
     }
     else if(repairer < 1 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
+        roleRepair.buildRepair();
+    }
+    else if(fighters < 3 && !Game.spawns.Spawn1.canCreateCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE])){
+        roleFighter.buildFighter(fighters);
+    }
+    else if(repairer < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container.length >= 2){
         roleRepair.buildRepair();
     }
 }

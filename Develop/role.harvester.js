@@ -56,11 +56,12 @@ var roleHarvester = {
     },
     
     buildHarvester: function(){
+        var result;
         if(Game.spawns.Spawn1.room.energyCapacityAvailable > 400){
-            Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], "Harvest"+Game.time, {role:"Harvest"});
+            result = Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], "Harvest"+Game.time, {role:"Harvest"});
         }
         else{
-            Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, MOVE], "Harvest"+Game.time, {role:"Harvest"});
+            result = Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, MOVE], "Harvest"+Game.time, {role:"Harvest"});
         }
     }
 }

@@ -54,7 +54,7 @@ var roleBuilder = {
     },
     
     buildBuilder: function(){
-        if(Game.spawns.Spawn1.room.energyCapacityAvailable > 400){
+        if(Game.spawns.Spawn1.room.energyCapacityAvailable >= 400){
             Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, MOVE, MOVE, MOVE], "Build"+Game.time, {role:"Build"});
         }
         else {
@@ -84,7 +84,7 @@ function getEnergy(creep, container){
     }
     else {
         for(var index in container){
-            if(container[index].store.energy > creep.carryCapacity){
+            if(container[index].store.energy > (creep.carryCapacity-creep.carry.energy)){
                 if(container[index].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE){
                     creep.moveTo(container[index]);
                     break;

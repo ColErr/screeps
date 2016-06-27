@@ -56,7 +56,7 @@ var roleHarvester = {
     },
     
     buildHarvester: function(){
-        if(Game.spawns.Spawn1.room.energyCapacityAvailable > 400){
+        if(Game.spawns.Spawn1.room.energyCapacityAvailable >= 400){
             Game.spawns.Spawn1.createCreep([WORK, WORK, CARRY, CARRY, MOVE, MOVE], "Harvest"+Game.time, {role:"Harvest"});
         }
         else{
