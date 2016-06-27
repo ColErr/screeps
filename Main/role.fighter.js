@@ -1,15 +1,31 @@
 var roleFighter = {
     
     run: function(creep){
+        var staging = Game.spawns.Spawn1.room.find(FIND_FLAGS);
         var targets = creep.room.find(FIND_HOSTILE_CREEPS);
-        if(targets.length != 0){
-            if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
-                creep.moveTo(targets[0]);
+        if(targets.length == 0){
+            if(creep.pos.rangeTo(staging[0]) < 3){
+                creep.memory.state = 0;
+            }
+            else {
+                creep.memory.state = 1;
             }
         }
-        else {
-            var staging = Game.spawns.Spawn1.room.find(FIND_FLAGS);
-            creep.moveTo(staging[0]);
+        else (
+            creep.memory.state = 2;
+        }
+        
+        switch(creep.memory.state){
+            case: 0;
+                break;
+            case: 1;
+                creep.moveTo(staging[0]);
+                break;
+            case: 2;
+                if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
+                    creep.moveTo(targets[0]);
+                }
+                break;
         }
     },
     
@@ -32,5 +48,11 @@ var roleFighter = {
         }
     }
 }
+/*
+Fighter states
 
+0 = Wait
+1 = Move to Staging Area
+2 = Attack Invader
+*/
 module.exports = roleFighter;
