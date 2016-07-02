@@ -1,64 +1,72 @@
-var roleHarvester = require('role.harvester');
-var roleBuilder = require('role.builder');
-var roleMaintainer = require('role.maintain');
-var roleFighter = require('role.fighter');
+var RoomController = require('RoomController');
+var Harvester = require('Harvester');
+var Builder = require('Builder');
+var Maintainer = require('Maintainer');
+var Repairer = require('Repairer');
 
-module.exports.loop = function () {
-    var container = Game.spawns.Spawn1.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}});
-    var workers = 0;
-    var builders = 0;
-    var maintain = 0;
-    var fighters = 0;
-    var repairer = 0;
+module.exports.loop = function() {
+    //Game Initialization
+    if(Memory.init === undefined){
+        initialize();
+    }
     
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
+    //Initialize rooms
+    var roomstats = {};
+    for(var name in Game.rooms){
+        roomstats[name] = {};
         
-        //Garbage collect. Kill them at 1TTL to make life easier
-        if(creep.ticksToLive == 1){
-            creep.suicide;
-            delete Memory.creeps[name];
-        }
-        else if(creep.memory.role == "Harvest"){
-            roleHarvester.run(creep, container);
-            workers++;
-        }
-        else if (creep.memory.role == "Maintain"){
-            roleMaintainer.run(creep, container);
-            maintain++;
-        }
-        else if(creep.memory.role == "Build"){
-            roleBuilder.run(creep, container);
-            builders++;
-        }
-        else if(creep.memory.role == "Fighter"){
-            roleFighter.run(creep);
-            fighters++;
-        }
-        else if(creep.memory.role == "Repair"){
-            roleRepair.run(creep, container);
-            repairer++
-        }
+        roomstats[name].Ha = 0;
+        roomstats[name].Bl = 0;
+        roomstats[name].Mn = 0;
+        roomstats[name].Rp = 0;
     }
     
-    if(workers < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
-        roleHarvester.buildHarvester();
+    //Creep Loop
+    for(var name in Game.creeps){
+        switch(Game.creeps[name].memory.role){
+            case RoomController.ROLE_HARVESTER:
+                Harvester.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Ha;
+                break;
+            case RoomController.ROLE_BUILDER:
+                Builder.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Bl;
+                break;
+            case RoomController.ROLE_MAINTAINER:
+                Maintainer.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Mn;
+                break;
+            case RoomController.ROLE_REPAIRER:
+                Repairer.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Rp;
+                break;
+        }
+        
+        RoomController.checkPulse(Game.creeps[name]);
     }
-    /* Commetted out for now, since I don't need them. They just die.
-    else if(fighters < 1 && !Game.spawns.Spawn1.canCreateCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE])){
-        roleFighter.buildFighter();
+    
+    for(var rooms in roomstats){
+        RoomController.moreCreeps(rooms, roomstats[rooms]);
     }
-    */
-    else if(maintain < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleMaintainer.buildMaintainer();
+    
+    //Extra timing tasks
+    if((Game.time%1000) === 0 && Game.cpu.getUsed() < (Game.cpu.limit - 5)){
+        garbageCollect();
     }
-    else if(builders < 3 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
-        roleBuilder.buildBuilder();
+}
+
+function garbageCollect(){
+    for(var creepmem in Memory.creeps){
+        if(Game.creeps[creepmem] === undefined){
+            delete Memory.creeps[creepmem];
+        }
     }
-    else if(workers < 4 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleHarvester.buildHarvester();
+}
+
+function initialize() {
+    if(_.isEmpty(Game.spawns)){
+        return;
     }
-    else if(repairer < 1 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleRepair.buildRepair();
-    }
+    
+    Memory.init = true;
 }

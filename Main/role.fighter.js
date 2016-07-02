@@ -4,24 +4,24 @@ var roleFighter = {
         var staging = Game.spawns.Spawn1.room.find(FIND_FLAGS);
         var targets = creep.room.find(FIND_HOSTILE_CREEPS);
         if(targets.length == 0){
-            if(creep.pos.rangeTo(staging[0]) < 3){
+            if(creep.pos.getRangeTo(staging[0]) < 2){
                 creep.memory.state = 0;
             }
             else {
                 creep.memory.state = 1;
             }
         }
-        else (
+        else {
             creep.memory.state = 2;
         }
         
         switch(creep.memory.state){
-            case: 0;
+            case 0:
                 break;
-            case: 1;
+            case 1:
                 creep.moveTo(staging[0]);
                 break;
-            case: 2;
+            case 2:
                 var success = creep.rangedAttack(targets[0]);
                 if(success == ERR_NO_BODYPART){
                     if(creep.attack(targets[0]) == ERR_NOT_IN_RANGE){
@@ -39,6 +39,7 @@ var roleFighter = {
     },
     
     buildFighter: function(num){
+        //Fix spawning logic
         if((num+1)%3 !== 0){
             if(Game.spawns.Spawn1.room.energyCapacityAvailable >= 550){
                 Game.spawns.Spawn1.createCreep([TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, ATTACK, MOVE], "CloseAtt"+Game.time, {role:"Fighter"});
