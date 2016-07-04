@@ -64,6 +64,7 @@ function giveSpawnEnergy(mycreep){
     }
     else if(result === ERR_FULL){
         mycreep.memory.target = null;
+        //REMOVE AFTER MULTI-SPAWN HANDLING CODE
         mycreep.memory.state = 0;
     }
 }

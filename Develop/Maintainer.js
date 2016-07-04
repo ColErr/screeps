@@ -17,11 +17,11 @@ var Maintainer = {
                 break;
             case 2:
                 //Bring Energy to Extensions
-                
+                giveExtensionEnergy(mycreep);
                 break;
             case 3:
                 //Reload Towers
-                
+                reloadTower(mycreep);
                 break;
             case 4:
                 //Upgrade the Controller
@@ -36,6 +36,10 @@ var Maintainer = {
 function getEnergy(mycreep){
     if(mycreep.memory.source === null){
         RoomController.getSource(mycreep, RoomController.SOURCE_CONTAINER);
+    }
+    
+    if(mycreep.memory.source === null){
+        return;
     }
     
     var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
@@ -60,7 +64,37 @@ function giveSpawnEnergy(mycreep){
         mycreep.moveTo(Game.spawns[mycreep.memory.target]);
     }
     else if(result === ERR_FULL){
+        mycreep.memory.target = null;
+        //REMOVE AFTER MULTI-SPAWN HANDLING CODE
         mycreep.memory.state = 0;
+    }
+}
+
+function giveExtensionEnergy(mycreep){
+    if(mycreep.memory.target === null){
+        RoomController.getTarget(mycreep, RoomController.TARGET_EXTENSION);
+    }
+    
+    var result = mycreep.transfer(Game.getObjectById(mycreep.memory.target), RESOURCE_ENERGY)
+    if(result === ERR_NOT_IN_RANGE) {
+        mycreep.moveTo(Game.getObjectById(mycreep.memory.target));
+    }
+    else if(result === ERR_FULL){
+        mycreep.memory.target = null;
+    }
+}
+
+function reloadTower(mycreep){
+    if(mycreep.memory.target === null){
+        RoomController.getTarget(mycreep, RoomController.TARGET_TOWER);
+    }
+    
+    var result = mycreep.transfer(Game.getObjectById(mycreep.memory.target), RESOURCE_ENERGY)
+    if(result === ERR_NOT_IN_RANGE) {
+        mycreep.moveTo(Game.getObjectById(mycreep.memory.target));
+    }
+    else if(result === ERR_FULL){
+        mycreep.memory.target = null;
     }
 }
 
@@ -84,16 +118,24 @@ function checkState(mycreep){
         if(mycreep.room.energyAvailable < mycreep.room.energyCapacityAvailable){
             var myspawns = mycreep.room.find(FIND_MY_SPAWNS);
             for(var name in myspawns){
-                if(Game.spawns[name].energy < Game.spawns[name].energyCapacity){
+                if(Game.spawns[myspawns[name].name].energy < Game.spawns[myspawns[name].name].energyCapacity){
                     mycreep.memory.state = 1;
                     return;
                 }
             }
             mycreep.memory.state = 2;
+            return;
         }
-        else{
-            mycreep.memory.state = 4;
+        var towers = mycreep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
+        if(towers.length){
+            for(var index in towers){
+                if(towers[index].energy < towers[index].energyCapacity){
+                    mycreep.memory.state = 3;
+                    return;
+                }
+            }
         }
+        mycreep.memory.state = 4;
     }
 }
 

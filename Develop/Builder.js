@@ -39,6 +39,10 @@ function getEnergy(mycreep){
         RoomController.getSource(mycreep, type);
     }
     
+    if(mycreep.memory.source === null){
+        return;
+    }
+    
     if(Game.getObjectById(mycreep.memory.source).structureType){
         //Getting energy from a container
         var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
@@ -61,6 +65,10 @@ function getEnergy(mycreep){
 }
 
 function buildStructures(mycreep){
+    if(mycreep.memory.target === null){
+        RoomController.getTarget(mycreep, RoomController.TARGET_BUILD);
+    }
+    
     var target = mycreep.build(Game.getObjectById(mycreep.memory.target));
     if(target === ERR_NOT_IN_RANGE){
         mycreep.moveTo(Game.getObjectById(mycreep.memory.target));
@@ -73,7 +81,16 @@ function buildStructures(mycreep){
     }
 }
 
-function repairStructure(mycreep){
+function repairStructures(mycreep){
+    if(mycreep.memory.target === null){
+        RoomController.getTarget(mycreep, RoomController.TARGET_REPAIR);
+    }
+    
+    if(Game.getObjectById(mycreep.memory.target).hits === Game.getObjectById(mycreep.memory.target).hitsMax){
+        mycreep.memory.target = null;
+        return;
+    }
+    
     var target = mycreep.repair(Game.getObjectById(mycreep.memory.target));
     if(target === ERR_NOT_IN_RANGE){
         mycreep.moveTo(Game.getObjectById(mycreep.memory.target));
