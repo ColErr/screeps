@@ -1,6 +1,6 @@
 var RoomController = require('RoomController');
 
-var Repairer = {
+var Builder = {
     run: function(mycreep){
         if(mycreep.spawning){
             return;
@@ -12,10 +12,14 @@ var Repairer = {
                 getEnergy(mycreep);
                 break;
             case 1:
+                //Build Structures
+                buildStructures(mycreep);
+                break;
+            case 2:
                 //Repair Structures
                 repairStructures(mycreep);
                 break;
-            case 2:
+            case 3:
                 //Upgrade the Controller
                 upgradeLocalController(mycreep);
                 break;
@@ -27,20 +31,53 @@ var Repairer = {
 
 function getEnergy(mycreep){
     if(mycreep.memory.source === null){
-        RoomController.getSource(mycreep, RoomController.SOURCE_CONTAINER);
+        var type = RoomController.SOURCE_ENERGY;
+    
+        if(mycreep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}}).length > 0){
+            type = RoomController.SOURCE_CONTAINER;
+        }
+        RoomController.getSource(mycreep, type);
     }
+    
     if(mycreep.memory.source === null){
         return;
     }
-    var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
-    if(source === ERR_NOT_IN_RANGE){
-        mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
-    }
-    else if(source === OK){
-        return;
+    
+    if(Game.getObjectById(mycreep.memory.source).structureType){
+        //Getting energy from a container
+        var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
+        if(source === ERR_NOT_IN_RANGE){
+            mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
+        }
+        else if(source === OK){
+            return;
+        }
+        else{
+            mycreep.memory.source = null;
+        }
     }
     else{
-        mycreep.memory.source = null;
+        //Getting energy from a source
+        if(mycreep.harvest(Game.getObjectById(mycreep.memory.source)) === ERR_NOT_IN_RANGE) {
+            mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
+        }
+    }
+}
+
+function buildStructures(mycreep){
+    if(mycreep.memory.target === null){
+        RoomController.getTarget(mycreep, RoomController.TARGET_BUILD);
+    }
+    
+    var target = mycreep.build(Game.getObjectById(mycreep.memory.target));
+    if(target === ERR_NOT_IN_RANGE){
+        mycreep.moveTo(Game.getObjectById(mycreep.memory.target));
+    }
+    else if(target === OK){
+        return;
+    }
+    else {
+        mycreep.memory.target = null;
     }
 }
 
@@ -83,13 +120,18 @@ function checkState(mycreep){
     }
     else if(mycreep.carry.energy === mycreep.carryCapacity && mycreep.memory.target === null){
         mycreep.memory.source = null;
-        if(mycreep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax}).length){
+        if(mycreep.room.find(FIND_CONSTRUCTION_SITES).length){
             mycreep.memory.state = 1;
         }
         else{
-            mycreep.memory.state = 2;
+            if(mycreep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax}).length){
+                mycreep.memory.state = 2;
+            }
+            else{
+                mycreep.memory.state = 3;
+            }
         }
     }
 }
 
-module.exports = Repairer;
+module.exports = Builder;

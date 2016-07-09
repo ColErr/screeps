@@ -1,8 +1,14 @@
 var RoomController = require('RoomController');
+
 var Harvester = require('Harvester');
 var Builder = require('Builder');
 var Maintainer = require('Maintainer');
 var Repairer = require('Repairer');
+var Upgrader = require('Upgrader');
+var Fighter = require('Fighter');
+var Pirate = require('Pirate');
+var Claimer = require('Claimer');
+
 var Tower = require('Tower');
 
 module.exports.loop = function() {
@@ -20,6 +26,7 @@ module.exports.loop = function() {
         roomstats[name].Bl = 0;
         roomstats[name].Mn = 0;
         roomstats[name].Rp = 0;
+        roomstats[name].Up = 0;
         
         //Towers
         var towers = Game.rooms[name].find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
@@ -49,13 +56,28 @@ module.exports.loop = function() {
                 Repairer.run(Game.creeps[name]);
                 ++roomstats[Game.creeps[name].room.name].Rp;
                 break;
+            case RoomController.ROLE_UPGRADER:
+                Upgrader.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Up;
+                break;
+            case RoomController.ROLE_FIGHTER:
+                Fighter.run(Game.creeps[name]);
+                break;
+            case RoomController.ROLE_PIRATE:
+                Pirate.run(Game.creeps[name]);
+                break;
+            case RoomController.ROLE_CLAIMER:
+                Claimer.run(Game.creeps[name]);
+                break;
         }
         
         RoomController.checkPulse(Game.creeps[name]);
     }
     
-    for(var rooms in roomstats){
-        RoomController.moreCreeps(rooms, roomstats[rooms]);
+    for(var room in roomstats){
+        if(Game.rooms[room].controller){
+            RoomController.moreCreeps(room, roomstats[room]);
+        }
     }
     
     //Average CPU usage
@@ -63,11 +85,13 @@ module.exports.loop = function() {
     Memory.cpuavg = ((Memory.cpuavg * 9)+ currentcpu)/10
     
     //Extra timing tasks
-    if((Game.time%1000) === 0 && Game.cpu.getUsed() < (Game.cpu.limit - 5)){
-        garbageCollect();
+    if((Game.time%100) === 0){
+        if(Game.time%1000 && Game.cpu.getUsed() < (Game.cpu.limit - 5)){
+            garbageCollect();
+        }
+        console.log((Math.round((Game.flags.Stage.room.controller.progress/Game.flags.Stage.room.controller.progressTotal)*10000)/100)+"% to next room level");
         Memory.lastadd = Game.cpu.getUsed() - currentcpu;
     }
-    
 }
 
 function garbageCollect(){
@@ -85,12 +109,10 @@ function initialize() {
     
     for(var index in Game.spawns){
         var roomname = Game.spawns[index].room.name;
-        Memory.rooms[roomname] = {sources:[]};
-        var sources = Game.rooms[roomname].find(FIND_SOURCES);
-        for(var i in sources){
-            Memory.rooms[roomname].sources.push(0);
-        }
+        Memory.rooms[roomname] = {source:0};
     }
+    
+    Memory.friends = [Niarbeht, Figgis, Kyndigen];
     
     Memory.cpuavg = 0;
     Memory.lastadd = 0;

@@ -1,66 +1,120 @@
-var roleHarvester = require('role.harvester');
-var roleBuilder = require('role.builder');
-var roleMaintainer = require('role.maintain');
-var roleFighter = require('role.fighter');
-var roleRepair = require('role.repair');
+var RoomController = require('RoomController');
 
-module.exports.loop = function () {
-    var container = Game.spawns.Spawn1.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}});
-    var workers = 0;
-    var builders = 0;
-    var maintain = 0;
-    var fighters = 0;
-    var repairer = 0;
+var Harvester = require('Harvester');
+var Builder = require('Builder');
+var Maintainer = require('Maintainer');
+var Repairer = require('Repairer');
+var Upgrader = require('Upgrader');
+var Fighter = require('Fighter');
+var Pirate = require('Pirate');
+var Claimer = require('Claimer');
+
+var Tower = require('Tower');
+
+module.exports.loop = function() {
+    //Game Initialization
+    if(Memory.init === undefined){
+        initialize();
+    }
     
-    for(var name in Game.creeps) {
-        var creep = Game.creeps[name];
+    //Initialize rooms
+    var roomstats = {};
+    for(var name in Game.rooms){
+        //Initialize creep counter variables
+        roomstats[name] = {};
+        roomstats[name].Ha = 0;
+        roomstats[name].Bl = 0;
+        roomstats[name].Mn = 0;
+        roomstats[name].Rp = 0;
+        roomstats[name].Up = 0;
         
-        //Garbage collect. Kill them at 1TTL to make life easier
-        if(creep.ticksToLive == 1){
-            creep.suicide;
-            delete Memory.creeps[name];
-        }
-        else if(creep.memory.role == "Harvest"){
-            roleHarvester.run(creep, container);
-            workers++;
-        }
-        else if (creep.memory.role == "Maintain"){
-            roleMaintainer.run(creep, container);
-            maintain++;
-        }
-        else if(creep.memory.role == "Repair"){
-            roleRepair.run(creep, container);
-            repairer++
-        }
-        else if(creep.memory.role == "Build"){
-            roleBuilder.run(creep, container);
-            builders++;
-        }
-        else if(creep.memory.role == "Fighter"){
-            roleFighter.run(creep);
-            fighters++;
+        //Towers
+        var towers = Game.rooms[name].find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_TOWER}});
+        if(towers.length){
+            for(var index in towers){
+                Tower.run(towers[index]);
+            }
         }
     }
     
-    if(workers < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
-        roleHarvester.buildHarvester();
+    //Creep Loop
+    for(var name in Game.creeps){
+        switch(Game.creeps[name].memory.role){
+            case RoomController.ROLE_HARVESTER:
+                Harvester.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Ha;
+                break;
+            case RoomController.ROLE_BUILDER:
+                Builder.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Bl;
+                break;
+            case RoomController.ROLE_MAINTAINER:
+                Maintainer.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Mn;
+                break;
+            case RoomController.ROLE_REPAIRER:
+                Repairer.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Rp;
+                break;
+            case RoomController.ROLE_UPGRADER:
+                Upgrader.run(Game.creeps[name]);
+                ++roomstats[Game.creeps[name].room.name].Up;
+                break;
+            case RoomController.ROLE_FIGHTER:
+                Fighter.run(Game.creeps[name]);
+                break;
+            case RoomController.ROLE_PIRATE:
+                Pirate.run(Game.creeps[name]);
+                break;
+            case RoomController.ROLE_CLAIMER:
+                Claimer.run(Game.creeps[name]);
+                break;
+        }
+        
+        RoomController.checkPulse(Game.creeps[name]);
     }
-    else if(maintain < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleMaintainer.buildMaintainer();
+    
+    for(var room in roomstats){
+        if(Game.rooms[room].controller){
+            RoomController.moreCreeps(room, roomstats[room]);
+        }
     }
-    else if(builders < 3 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) ){
-        roleBuilder.buildBuilder();
+    
+    //Average CPU usage
+    var currentcpu = Game.cpu.getUsed();
+    Memory.cpuavg = ((Memory.cpuavg * 9)+ currentcpu)/10
+    
+    //Extra timing tasks
+    if((Game.time%100) === 0){
+        if(Game.time%1000 && Game.cpu.getUsed() < (Game.cpu.limit - 5)){
+            garbageCollect();
+        }
+        console.log((Math.round((Game.flags.Stage.room.controller.progress/Game.flags.Stage.room.controller.progressTotal)*10000)/100)+"% to next room level");
+        Memory.lastadd = Game.cpu.getUsed() - currentcpu;
     }
-    else if(workers < 6 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleHarvester.buildHarvester();
+}
+
+function garbageCollect(){
+    for(var creepmem in Memory.creeps){
+        if(Game.creeps[creepmem] === undefined){
+            delete Memory.creeps[creepmem];
+        }
     }
-    else if(repairer < 1 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container!=0){
-        roleRepair.buildRepair();
+}
+
+function initialize() {
+    if(_.isEmpty(Game.spawns)){
+        return;
     }
-    else if(fighters < 3 && !Game.spawns.Spawn1.canCreateCreep([TOUGH, TOUGH, ATTACK, ATTACK, MOVE, MOVE])){
-        roleFighter.buildFighter(fighters);
+    
+    for(var index in Game.spawns){
+        var roomname = Game.spawns[index].room.name;
+        Memory.rooms[roomname] = {source:0};
     }
-    else if(repairer < 2 && !Game.spawns.Spawn1.canCreateCreep([WORK, WORK, CARRY, MOVE]) && container.length >= 2){
-        roleRepair.buildRepair();
-    }
+    
+    Memory.friends = [Niarbeht, Figgis, Kyndigen];
+    
+    Memory.cpuavg = 0;
+    Memory.lastadd = 0;
+    Memory.init = true;
 }
