@@ -1,3 +1,5 @@
+//Game.spawns.E4S33A.createCreep([CLAIM,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY], "Cl0000", {room: "E4S33", role: "Cl", state: 0, source: null, target: null});
+
 var RoomController = require('RoomController');
 
 var Claimer = {
@@ -12,11 +14,11 @@ var Claimer = {
                 waitAtStage(mycreep);
                 break;
             case 1:
-                //Deposit da loot
+                //Claim room
                 claimRoom(mycreep);
                 break;
             case 2:
-                //Git da loot
+                //Reserve room
                 reserveRoom(mycreep);
                 break;
         }
@@ -31,7 +33,7 @@ function waitAtStage(mycreep){
             RoomController.getSource(mycreep, RoomController.SOURCE_CONTAINER);
         }
         
-        var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
+        var source = mycreep.withdraw(Game.getObjectById(mycreep.memory.source), RESOURCE_ENERGY);
         if(source === ERR_NOT_IN_RANGE){
             mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
             return;
@@ -62,22 +64,29 @@ function claimRoom(mycreep){
     else if(mycreep.room.controller.level === 1){
         mycreep.upgradeController(mycreep.room.controller);
     }
-    else{
-        mycreep.suicide;
-        delete mycreep.memory;
+    else if(mycreep.room.controller.level === 2){
+        mycreep.memory.role = RoomController.ROLE_BUILDER;
+        mycreep.memory.state = 0;
     }
 }
 
 function reserveRoom(mycreep){
+    if(mycreep.room !== Game.rooms[mycreep.memory.room]){
+        mycreep.moveTo(new RoomPosition(25, 25, mycreep.memory.room));
+        return;
+    }
     
+    if(mycreep.reserveController(mycreep.room.controller) == ERR_NOT_IN_RANGE) {
+        mycreep.moveTo(mycreep.room.controller);    
+    }
 }
 
 function checkState(mycreep){
-    if(Game.flags.Claim){
-        mycreep.memory.state = 1;
-    }
-    else if(Game.flags.Reserve){
+    if(mycreep.getActiveBodyparts(CARRY) === 0){
         mycreep.memory.state = 2;
+    }
+    else if(Game.flags.Claim){
+        mycreep.memory.state = 1;
     }
     else{
         mycreep.memory.state = 0;

@@ -1,5 +1,8 @@
 var RoomController = {
-    newCreep: function(room, body, role){
+    newCreep: function(room, body, role, targetroom = null){
+        if(targetroom === null){
+            targetroom = room;
+        }
         var myspawns = Game.rooms[room].find(FIND_MY_SPAWNS);
         var index = 0;
         var number = Game.time % 10000;
@@ -29,7 +32,7 @@ var RoomController = {
             return success;
         }
         var newcreep = myspawns[index].createCreep(body, (role + number), 
-            {room: room, role: role, state: 0, source: null, target: null});
+            {room: targetroom, role: role, state: 0, source: null, target: null});
         
         return 0;
     },
@@ -39,6 +42,9 @@ var RoomController = {
             return;
         }
         
+        if(mycreep.memory.role === RoomController.ROLE_CLAIMER){
+            Memory.rooms[mycreep.memory.room].creep = false;
+        }
         mycreep.suicide;
         delete mycreep.memory;
     },
@@ -46,10 +52,6 @@ var RoomController = {
     moreCreeps: function(room, numbers){
         var body, role;
         var needed = false;
-        
-        if(!Game.rooms[room].controller){
-            return;
-        }
         
         switch(Game.rooms[room].controller.level){
             default:
@@ -106,7 +108,12 @@ var RoomController = {
                     }
                 }
                 else if(numbers[RoomController.ROLE_BUILDER] < 4){
-                    if(Game.rooms[room].energyCapacityAvailable >= 400){
+                    if(Game.rooms[room].energyCapacityAvailable >= 850){
+                        body = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY];
+                        role = RoomController.ROLE_BUILDER;
+                        needed = true;
+                    }
+                    else if(Game.rooms[room].energyCapacityAvailable >= 400){
                         body = [WORK, WORK, CARRY, MOVE, MOVE, MOVE];
                         role = RoomController.ROLE_BUILDER;
                         needed = true;
@@ -147,24 +154,30 @@ var RoomController = {
                 }
                 break;
         }
-        if(Memory.war.moretroops && !needed){
-            if(Memory.war.zerg){
-                body = [ATTACK, MOVE];
-                role = RoomController.ROLE_FIGHTER;
-                needed = true;
+        if(Memory.rooms[room].war.moretroops && !needed){
+            switch(Memory.rooms[room].war.body){
+                case 0:
+                    body = [TOUGH, MOVE];
+                    break;
+                case 1:
+                    body = [ATTACK, MOVE];
+                    break;
+                case 2:
+                    body = [MOVE, ATTACK, MOVE, ATTACK];
+                    break;
+                case 3:
+                    body = [MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, ATTACK];
+                    break;
+                case 4:
+                    body = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,MOVE]
+                    break;
+                case 5:
+                    body = [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK]
+                    break;
             }
-            else{
-                if(Game.rooms[room].energyCapacityAvailable >= 450){
-                    body = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, ATTACK];
-                    role = RoomController.ROLE_FIGHTER;
-                    needed = true;
-                }
-                else{
-                    body = [TOUGH, TOUGH, TOUGH, TOUGH, MOVE, ATTACK, MOVE, ATTACK];
-                    role = RoomController.ROLE_FIGHTER;
-                    needed = true;
-                }
-            }
+            
+            role = RoomController.ROLE_FIGHTER;
+            needed = true;
         }
         
         if(needed){
@@ -175,13 +188,15 @@ var RoomController = {
     getSource: function(mycreep, type){
         switch(type){
             case RoomController.SOURCE_ENERGY:
-                /*//FIX THIS, NEEDS TO ACTUALLY CHOOSE SOURCE
-                var source = mycreep.room.find(FIND_SOURCES);
-                var choice = Math.round(Math.random());
-                mycreep.memory.source = source[choice].id;*/
+                //This actually seems to work fairly well
                 var sources = mycreep.room.find(FIND_SOURCES);
-                mycreep.memory.source = sources[Memory.rooms[mycreep.room.name].source].id;
-                Memory.rooms[mycreep.room.name].source = Math.abs(--Memory.rooms[mycreep.room.name].source);
+                if(sources.length === 2){
+                    mycreep.memory.source = sources[Memory.rooms[mycreep.room.name].source].id;
+                    Memory.rooms[mycreep.room.name].source = Math.abs(--Memory.rooms[mycreep.room.name].source);
+                }
+                else{
+                    mycreep.memory.source = sources[0].id;
+                }
                 break;
             case RoomController.SOURCE_CONTAINER:
                 var containers = mycreep.room.find(FIND_STRUCTURES, 
@@ -236,23 +251,27 @@ var RoomController = {
                 }
                 //Then check for Roads, because they are quick
                 targets = mycreep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_ROAD}});
-                targets.sort((a,b) => a.hits - b.hits);
-                if(targets[0].hits < targets[0].hitsMax){
-                    mycreep.memory.target = targets[0].id;
-                    return;
+                if(targets.length){
+                    targets.sort((a,b) => a.hits - b.hits);
+                    if(targets[0].hits < targets[0].hitsMax){
+                        mycreep.memory.target = targets[0].id;
+                        return;
+                    }
                 }
                 var hitloop = 50000;
                 while(hitloop <= 300000000){
                     //Then those blasted Ramparts
                     targets = mycreep.room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_RAMPART}});
-                    targets.sort((a,b) => a.hits - b.hits);
-                    var hitrep = hitloop;
-                    if(hitloop >= targets[0].hitsMax){
-                        hitrep = targets[0].hitsMax;
-                    }
-                    if(targets[0].hits < hitrep){
-                        mycreep.memory.target = targets[0].id;
-                        return;
+                    if(targets.length){
+                        targets.sort((a,b) => a.hits - b.hits);
+                        var hitrep = hitloop;
+                        if(hitloop >= targets[0].hitsMax){
+                            hitrep = targets[0].hitsMax;
+                        }
+                        if(targets[0].hits < hitrep){
+                            mycreep.memory.target = targets[0].id;
+                            return;
+                        }
                     }
                     //Then everything else
                     targets = mycreep.room.find(FIND_STRUCTURES, {filter: object => object.hits < object.hitsMax});
@@ -313,7 +332,7 @@ var RoomController = {
                     }
                 );
                 if(towers.length){
-                    mycreep.memory.target = towers[index].id;
+                    mycreep.memory.target = towers[0].id;
                     return;
                 }
                 mycreep.memory.state = 0;

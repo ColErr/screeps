@@ -23,6 +23,9 @@ var Builder = {
                 //Upgrade the Controller
                 upgradeLocalController(mycreep);
                 break;
+            case 4:
+                mycreep.moveTo(Game.flags.Build);
+                break;
         }
         
         checkState(mycreep);
@@ -43,9 +46,9 @@ function getEnergy(mycreep){
         return;
     }
     
-    if(Game.getObjectById(mycreep.memory.source).structureType){
+    if(Game.getObjectById(mycreep.memory.source) instanceof Structure){
         //Getting energy from a container
-        var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
+        var source = mycreep.withdraw(Game.getObjectById(mycreep.memory.source), RESOURCE_ENERGY);
         if(source === ERR_NOT_IN_RANGE){
             mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
         }
@@ -114,6 +117,12 @@ function upgradeLocalController(mycreep){
 }
 
 function checkState(mycreep){
+    if(Game.flags.Build){
+        if(Game.flags.Build.room !== mycreep.room){
+            mycreep.memory.state = 4;
+            return;
+        }
+    }
     if(mycreep.carry.energy === 0){
         mycreep.memory.state = 0;
         mycreep.memory.target = null;

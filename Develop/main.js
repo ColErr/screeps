@@ -75,8 +75,17 @@ module.exports.loop = function() {
     }
     
     for(var room in roomstats){
-        if(Game.rooms[room].controller){
+        if(Game.rooms[room].controller.my){
             RoomController.moreCreeps(room, roomstats[room]);
+            if(Game.time%100 === 0){
+                console.log("Room "+room+" is "+(Math.round((Game.rooms[room].controller.progress/Game.rooms[room].controller.progressTotal)*10000)/100)+"% to level"+(Game.rooms[room].controller.level + 1));
+            }
+        }
+    }
+    
+    for(var room in Memory.rooms){
+        if(Memory.rooms[room].reserve === true && Memory.rooms[room].creep === false){
+            RoomController.newcreep(Memory.rooms[room].spawn, [CLAIM, CLAIM, MOVE, MOVE], RoomController.ROLE_CLAIMER, room);
         }
     }
     
@@ -89,7 +98,6 @@ module.exports.loop = function() {
         if(Game.time%1000 && Game.cpu.getUsed() < (Game.cpu.limit - 5)){
             garbageCollect();
         }
-        console.log((Math.round((Game.flags.Stage.room.controller.progress/Game.flags.Stage.room.controller.progressTotal)*10000)/100)+"% to next room level");
         Memory.lastadd = Game.cpu.getUsed() - currentcpu;
     }
 }

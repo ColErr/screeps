@@ -46,13 +46,13 @@ function getEnergy(mycreep){
         );
         if(containers.length){
             var location = containers.indexOf( mycreep.room.controller.pos.findClosestByRange(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_CONTAINER}}) );
-            if(location !== -1){
+            if(location !== -1 && containers.length > 1){
                 containers.splice(location, 1);
             }
             if(containers.length){
                 containers.sort((a,b) => (b.store[RESOURCE_ENERGY]/b.storeCapacity) - (a.store[RESOURCE_ENERGY])/a.storeCapacity);
+                mycreep.memory.source = containers[0].id;
             }
-            mycreep.memory.source = containers[0].id;
         }
     }
     
@@ -60,7 +60,7 @@ function getEnergy(mycreep){
         return;
     }
     
-    var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
+    var source = mycreep.withdraw(Game.getObjectById(mycreep.memory.source), RESOURCE_ENERGY);
     if(source === ERR_NOT_IN_RANGE){
         mycreep.moveTo(Game.getObjectById(mycreep.memory.source));
     }

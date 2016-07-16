@@ -5,6 +5,10 @@ var Tower = {
             return;
         }
         
+        if(!mytower.my){
+            return;
+        }
+        
         //Check for Hostile creeps
         var target = null;
         if(mytower.room.find(FIND_HOSTILE_CREEPS).length){
@@ -29,6 +33,9 @@ var Tower = {
                         }
                     }
                 );
+            }
+            if(target.owner.username !== "Invader"){
+                Game.notify(target.owner.username +"'s creep has entered room "+mytower.room.name, 2);
             }
             mytower.attack(target);
             return;

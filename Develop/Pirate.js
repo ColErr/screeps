@@ -81,7 +81,7 @@ function getLoot(mycreep){
     
     var target = Game.getObjectById(mycreep.memory.target);
     if(target instanceof Structure){
-        var success = target.transfer(mycreep, RESOURCE_ENERGY);
+        var success = mycreep.withdraw(target, RESOURCE_ENERGY);
         if(success === ERR_NOT_IN_RANGE){
             mycreep.moveTo(target);
         }
@@ -91,7 +91,7 @@ function getLoot(mycreep){
         }
     }
     else{
-        mycreep.pickup(target);
+        var success = mycreep.pickup(target);
         if(success === ERR_NOT_IN_RANGE){
             mycreep.moveTo(target);
         }

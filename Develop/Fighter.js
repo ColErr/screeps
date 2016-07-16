@@ -37,7 +37,7 @@ function attackEnemy(mycreep){
     var targets = [];
     switch(Game.flags.Rally.secondaryColor){
         case COLOR_GREY:
-            targets = Game.flags.Rally.pos.findInRange(FIND_STRUCTURES, 1);
+            targets = Game.flags.Rally.pos.findInRange(FIND_STRUCTURES, 0);
             if(targets.length){
                 break;
             }
@@ -83,7 +83,7 @@ function attackEnemy(mycreep){
     
     var success = mycreep.rangedAttack(target);
     if(success === ERR_NO_BODYPART){
-        if(mycreep.attack(target) === ERR_NOT_IN_RANGE){
+        if((mycreep.attack(target) === ERR_NOT_IN_RANGE) || (mycreep.dismantle(target) === ERR_NOT_IN_RANGE)){
             mycreep.moveTo(target);
         }
         return;
