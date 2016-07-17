@@ -108,12 +108,12 @@ var RoomController = {
                     }
                 }
                 else if(numbers[RoomController.ROLE_BUILDER] < 4){
-                    if(Game.rooms[room].energyCapacityAvailable >= 850){
+                    /*if(Game.rooms[room].energyCapacityAvailable >= 850){
                         body = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY];
                         role = RoomController.ROLE_BUILDER;
                         needed = true;
                     }
-                    else if(Game.rooms[room].energyCapacityAvailable >= 400){
+                    else*/ if(Game.rooms[room].energyCapacityAvailable >= 400){
                         body = [WORK, WORK, CARRY, MOVE, MOVE, MOVE];
                         role = RoomController.ROLE_BUILDER;
                         needed = true;

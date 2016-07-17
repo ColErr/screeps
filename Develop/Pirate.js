@@ -33,8 +33,8 @@ function waitAtStage(mycreep){
 }
 
 function depositLoot(mycreep){
-    if(mycreep.room !== Game.flags.Stage.room){
-        mycreep.moveTo(Game.flags.Stage);
+    if(mycreep.room !== Game.rooms[mycreep.memory.room]){
+        mycreep.moveTo(new RoomPosition(25, 25, mycreep.memory.room));
         return;
     }
     
