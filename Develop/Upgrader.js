@@ -37,7 +37,6 @@ function getEnergy(mycreep){
         return;
     }
     
-    //var source = Game.getObjectById(mycreep.memory.source).transfer(mycreep, RESOURCE_ENERGY);
     var source = mycreep.withdraw(Game.getObjectById(mycreep.memory.source), RESOURCE_ENERGY);
     if(source === ERR_NOT_IN_RANGE){
         mycreep.moveTo(Game.getObjectById(mycreep.memory.source));

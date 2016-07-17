@@ -24,7 +24,7 @@ var Maintainer = {
                 reloadTower(mycreep);
                 break;
             case 4:
-                //Pick up trash
+                //Load Balance Containers
                 distributeEnergy(mycreep);
                 break;
         }

@@ -1,3 +1,5 @@
+//Game.spawns.E4S33A.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY], "Pi0000", {room: "E4S33", role: "Pi", state: 0, source: null, target: null});
+
 var RoomController = require('RoomController');
 
 var Pirate = {

@@ -291,7 +291,6 @@ var RoomController = {
                 }
                 break;
             case RoomController.TARGET_SPAWN:
-                //FIX THIS, HANDLE MULTIPLE SPAWNS
                 var spawns = mycreep.room.find(FIND_MY_SPAWNS);
                 for(var index in spawns){
                     if(spawns[index].energy < spawns[index].energyCapacity){
