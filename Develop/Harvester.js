@@ -64,7 +64,6 @@ function giveSpawnEnergy(mycreep){
     }
     else if(result === ERR_FULL){
         mycreep.memory.target = null;
-        //REMOVE AFTER MULTI-SPAWN HANDLING CODE
         mycreep.memory.state = 0;
     }
 }
@@ -74,7 +73,7 @@ function upgradeLocalController(mycreep){
         RoomController.getTarget(mycreep, RoomController.TARGET_CONTROLLER);
     }
     
-    if(mycreep.upgradeController(Game.spawns[mycreep.memory.target].room.controller) == ERR_NOT_IN_RANGE) {
+    if(mycreep.upgradeController(Game.spawns[mycreep.memory.target].room.controller) === ERR_NOT_IN_RANGE) {
         mycreep.moveTo(Game.spawns[mycreep.memory.target].room.controller);
     }
 }

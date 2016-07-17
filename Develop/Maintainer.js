@@ -113,6 +113,10 @@ function reloadTower(mycreep){
     if(mycreep.memory.target === null){
         RoomController.getTarget(mycreep, RoomController.TARGET_TOWER);
     }
+	
+	if(mycreep.memory.target === null){
+		return;
+	}
     
     var result = mycreep.transfer(Game.getObjectById(mycreep.memory.target), RESOURCE_ENERGY)
     if(result === ERR_NOT_IN_RANGE) {
