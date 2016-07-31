@@ -98,4 +98,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Harvester;

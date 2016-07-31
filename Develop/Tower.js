@@ -49,4 +49,3 @@ var Tower = {
     }
 }
 
-module.exports = Tower;

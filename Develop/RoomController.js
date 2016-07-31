@@ -363,4 +363,3 @@ var RoomController = {
     TARGET_TOWER: 6
 }
 
-module.exports = RoomController;

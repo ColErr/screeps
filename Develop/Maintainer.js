@@ -184,4 +184,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Maintainer;

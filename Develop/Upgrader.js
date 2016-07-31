@@ -69,4 +69,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Upgrader;

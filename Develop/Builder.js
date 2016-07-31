@@ -143,4 +143,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Builder;

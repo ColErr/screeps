@@ -93,4 +93,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Repairer;

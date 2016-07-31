@@ -117,4 +117,3 @@ function checkState(mycreep){
     }
 }
 
-module.exports = Fighter;
